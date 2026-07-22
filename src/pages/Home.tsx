@@ -92,7 +92,7 @@ export default function Home() {
                     <p className="text-xs tracking-[0.2em] text-primary uppercase">{v.category}</p>
                     <h3 className="mt-1 font-display text-2xl text-silver-bright">{v.name}</h3>
                     <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{v.description}</p>
-                    <p className="mt-4 text-sm text-primary">${Number(v.per_km_rate).toFixed(2)} / mile</p>
+                    <p className="mt-4 text-sm text-primary">${Number(v.per_km_rate).toFixed(2)} / mile · ${Number(v.hourly_rate || 90).toFixed(0)} / hour</p>
                   </div>
                 </Link>
               </motion.div>
