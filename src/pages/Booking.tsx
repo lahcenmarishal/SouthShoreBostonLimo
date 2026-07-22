@@ -64,7 +64,7 @@ export default function Booking() {
 
   // Auto-calculate distance in miles when both pickup and drop-off are set.
   useEffect(() => {
-    if (!pickup || !dropoff || transferType === "hourly") return;
+    if (!pickup || !dropoff) return;
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       setComputingMiles(true);
