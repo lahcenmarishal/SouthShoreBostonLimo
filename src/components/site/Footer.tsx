@@ -63,7 +63,7 @@ export function Footer() {
       </div>
       <div className="border-t border-border">
         <div className="container mx-auto px-4 md:px-8 py-6 text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-2">
-          <span>© {new Date().getFullYear()} South Shore Limo Boston. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Oma Trans INC — South Shore Limo Boston. All rights reserved.</span>
           <span>Arrive with distinction.</span>
         </div>
       </div>
