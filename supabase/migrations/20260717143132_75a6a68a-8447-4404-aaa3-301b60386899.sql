@@ -1,0 +1,1 @@
+UPDATE public.site_settings SET contact_phone = '+1 (774) 434-5351' WHERE id = true;

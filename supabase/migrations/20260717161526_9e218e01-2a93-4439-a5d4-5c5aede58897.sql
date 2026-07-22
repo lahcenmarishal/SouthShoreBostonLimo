@@ -1,0 +1,1 @@
+CREATE POLICY "Admins delete bookings" ON public.bookings FOR DELETE USING (has_role(auth.uid(), 'admin'));

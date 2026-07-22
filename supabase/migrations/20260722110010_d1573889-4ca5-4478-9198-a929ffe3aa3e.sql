@@ -1,0 +1,1 @@
+UPDATE public.vehicles SET per_km_rate = 6, hourly_rate = 90, base_rate = 0;

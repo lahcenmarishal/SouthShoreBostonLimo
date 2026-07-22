@@ -1,0 +1,1 @@
+UPDATE public.site_settings SET contact_email = 'contact@southshorebostonlimo.com' WHERE id = true;
