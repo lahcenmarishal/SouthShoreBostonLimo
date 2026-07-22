@@ -45,22 +45,24 @@ export function Footer() {
           </ul>
         </div>
 
-        <div>
-          <h4 className="text-sm font-semibold uppercase tracking-wider text-silver-bright mb-4">Follow</h4>
-          <div className="flex gap-3">
-            {socials.map(({ href, Icon }, i) => (
-              <a
-                key={i}
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                className="size-10 grid place-items-center rounded-full border border-border text-silver hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
-              >
-                <Icon className="size-4" />
-              </a>
-            ))}
+        {socials.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-silver-bright mb-4">Follow</h4>
+            <div className="flex gap-3">
+              {socials.map(({ href, Icon }, i) => (
+                <a
+                  key={i}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="size-10 grid place-items-center rounded-full border border-border text-silver hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
+                >
+                  <Icon className="size-4" />
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="border-t border-border">
         <div className="container mx-auto px-4 md:px-8 py-6 text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-2">
