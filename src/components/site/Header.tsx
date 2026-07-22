@@ -64,10 +64,11 @@ export function Header() {
       )}
     >
       <div className="container mx-auto flex items-center justify-between px-4 md:px-8 h-20">
-        <Link to="/" className="flex items-center gap-2 group" aria-label="South Shore Limo Boston home">
+        <Link to="/" className="flex flex-col leading-tight group" aria-label="Oma Trans INC — South Shore Limo Boston home">
           <span className="font-display text-lg md:text-xl tracking-wide text-silver-bright leading-tight">
             SOUTH SHORE <span className="text-primary italic">Limo</span> BOSTON
           </span>
+          <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-primary/80">by Oma Trans INC</span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-8">
