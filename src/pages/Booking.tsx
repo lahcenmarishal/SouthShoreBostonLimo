@@ -185,7 +185,7 @@ export default function Booking() {
                   </div>
                   {transferType !== "hourly" && (
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Estimated distance (miles)</Label>
+                      <Label>Distance (miles)</Label>
                       <Input
                         type="text"
                         readOnly
