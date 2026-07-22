@@ -166,13 +166,12 @@ export default function Booking() {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="one_way">One way</SelectItem>
-                        <SelectItem value="round_trip">Round trip</SelectItem>
-                        <SelectItem value="hourly">Hourly</SelectItem>
+                        <SelectItem value="round_trip">Return</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>{transferType === "hourly" ? "Hours" : "Extra wait hours"}</Label>
+                    <Label>Extra wait hours</Label>
                     <Input type="number" min={0} max={24} step={0.5} value={extraWait} onChange={(e) => setExtraWait(Number(e.target.value))} />
                   </div>
                   <div className="space-y-2">
@@ -183,18 +182,16 @@ export default function Booking() {
                     <Label>Luggage</Label>
                     <Input type="number" min={0} max={30} value={luggage} onChange={(e) => setLuggage(Number(e.target.value))} />
                   </div>
-                  {transferType !== "hourly" && (
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>Distance (miles)</Label>
-                      <Input
-                        type="text"
-                        readOnly
-                        value={computingMiles ? "Calculating…" : estimatedMiles ? `${estimatedMiles} mi` : "—"}
-                        className="bg-muted/40"
-                      />
-                      <p className="text-xs text-muted-foreground">Distance is calculated automatically from pickup & drop-off. Final pricing confirmed by our team.</p>
-                    </div>
-                  )}
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Distance (miles)</Label>
+                    <Input
+                      type="text"
+                      readOnly
+                      value={computingMiles ? "Calculating…" : estimatedMiles ? `${estimatedMiles} mi` : "—"}
+                      className="bg-muted/40"
+                    />
+                    <p className="text-xs text-muted-foreground">Distance is calculated automatically from pickup & drop-off. Final pricing confirmed by our team.</p>
+                  </div>
                 </div>
                 <div className="flex justify-end pt-4">
                   <Button onClick={() => setStep(2)} disabled={!canNext1} className="bg-primary hover:bg-primary/90">
