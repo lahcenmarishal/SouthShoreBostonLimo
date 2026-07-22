@@ -30,7 +30,8 @@ export default function Booking() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>(1);
 
-  const initType = (searchParams.get("type") as TransferType | null) ?? "one_way";
+  const rawType = searchParams.get("type") as TransferType | null;
+  const initType: TransferType = rawType === "round_trip" ? "round_trip" : "one_way";
 
   const [date, setDate] = useState(searchParams.get("date") ?? "");
   const [time, setTime] = useState(searchParams.get("time") ?? "");
@@ -64,7 +65,7 @@ export default function Booking() {
 
   // Auto-calculate distance in miles when both pickup and drop-off are set.
   useEffect(() => {
-    if (!pickup || !dropoff || transferType === "hourly") return;
+    if (!pickup || !dropoff) return;
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       setComputingMiles(true);
@@ -166,13 +167,12 @@ export default function Booking() {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="one_way">One way</SelectItem>
-                        <SelectItem value="round_trip">Round trip</SelectItem>
-                        <SelectItem value="hourly">Hourly</SelectItem>
+                        <SelectItem value="round_trip">Return</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>{transferType === "hourly" ? "Hours" : "Extra wait hours"}</Label>
+                    <Label>Extra wait hours</Label>
                     <Input type="number" min={0} max={24} step={0.5} value={extraWait} onChange={(e) => setExtraWait(Number(e.target.value))} />
                   </div>
                   <div className="space-y-2">
@@ -183,18 +183,16 @@ export default function Booking() {
                     <Label>Luggage</Label>
                     <Input type="number" min={0} max={30} value={luggage} onChange={(e) => setLuggage(Number(e.target.value))} />
                   </div>
-                  {transferType !== "hourly" && (
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>Distance (miles)</Label>
-                      <Input
-                        type="text"
-                        readOnly
-                        value={computingMiles ? "Calculating…" : estimatedMiles ? `${estimatedMiles} mi` : "—"}
-                        className="bg-muted/40"
-                      />
-                      <p className="text-xs text-muted-foreground">Distance is calculated automatically from pickup & drop-off. Final pricing confirmed by our team.</p>
-                    </div>
-                  )}
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Distance (miles)</Label>
+                    <Input
+                      type="text"
+                      readOnly
+                      value={computingMiles ? "Calculating…" : estimatedMiles ? `${estimatedMiles} mi` : "—"}
+                      className="bg-muted/40"
+                    />
+                    <p className="text-xs text-muted-foreground">Distance is calculated automatically from pickup & drop-off. Final pricing confirmed by our team.</p>
+                  </div>
                 </div>
                 <div className="flex justify-end pt-4">
                   <Button onClick={() => setStep(2)} disabled={!canNext1} className="bg-primary hover:bg-primary/90">
@@ -272,14 +270,12 @@ export default function Booking() {
                   const base = Number(selectedVehicle.base_rate) || 0;
                   const perMi = Number(selectedVehicle.per_km_rate) || 0;
                   const hourly = Number(selectedVehicle.hourly_rate) || 90;
-                  const isHourly = transferType === "hourly";
                   const isRound = transferType === "round_trip";
                   const mult = isRound ? 1.9 : 1;
-                  const hours = isHourly ? Math.max(2, extraWait || 2) : 0;
-                  const distanceCost = isHourly ? 0 : (base + perMi * estimatedMiles) * mult;
-                  const hourlyCost = isHourly ? base + hourly * hours : hourly * extraWait;
-                  const total = distanceCost + hourlyCost;
-                  const typeLabel = isHourly ? "Hourly" : isRound ? "Round trip" : "One way";
+                  const distanceCost = (base + perMi * estimatedMiles) * mult;
+                  const waitCost = hourly * extraWait;
+                  const total = distanceCost + waitCost;
+                  const typeLabel = isRound ? "Return" : "One way";
                   return (
                     <div className="rounded-lg border border-primary/30 bg-card p-5">
                       <p className="text-xs tracking-wider text-primary uppercase">Summary</p>
@@ -289,17 +285,8 @@ export default function Booking() {
                           <p className="text-sm text-muted-foreground">{pickup} → {dropoff}</p>
                           <p className="text-sm text-muted-foreground">{date} at {time} · {passengers} pax · {luggage} bags · {typeLabel}</p>
                           <div className="mt-2 text-sm text-muted-foreground space-y-0.5">
-                            {isHourly ? (
-                              <>
-                                <p>Base: ${base.toFixed(2)}</p>
-                                <p>{hours} h × ${hourly.toFixed(0)}/h = ${(hourly * hours).toFixed(2)}</p>
-                              </>
-                            ) : (
-                              <>
-                                <p>{estimatedMiles} mi × ${perMi.toFixed(2)}/mi {isRound ? "× 1.9 (round trip)" : ""} = ${distanceCost.toFixed(2)}</p>
-                                {extraWait > 0 && <p>Extra wait: {extraWait} h × ${hourly.toFixed(0)}/h = ${(hourly * extraWait).toFixed(2)}</p>}
-                              </>
-                            )}
+                            <p>{estimatedMiles} mi × ${perMi.toFixed(2)}/mi {isRound ? "× 1.9 (return)" : ""} = ${distanceCost.toFixed(2)}</p>
+                            {extraWait > 0 && <p>Extra wait: {extraWait} h × ${hourly.toFixed(0)}/h = ${waitCost.toFixed(2)}</p>}
                           </div>
                         </div>
                         <div className="text-right max-w-[16rem]">

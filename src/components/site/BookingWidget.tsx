@@ -13,7 +13,7 @@ export function BookingWidget() {
   const [pickupTime, setPickupTime] = useState("");
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
-  const [transferType, setTransferType] = useState<"one_way" | "round_trip" | "hourly">("one_way");
+  const [transferType, setTransferType] = useState<"one_way" | "round_trip">("one_way");
   const [extraWait, setExtraWait] = useState(0);
 
   const handleContinue = () => {
@@ -73,8 +73,7 @@ export function BookingWidget() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="one_way">One way</SelectItem>
-                  <SelectItem value="round_trip">Round trip</SelectItem>
-                  <SelectItem value="hourly">Hourly</SelectItem>
+                  <SelectItem value="round_trip">Return</SelectItem>
                 </SelectContent>
               </Select>
             </div>
