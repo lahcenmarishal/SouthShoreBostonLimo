@@ -347,7 +347,10 @@ function FleetManager() {
                 <p className="text-xs text-muted-foreground">{v.category} · {v.capacity_passengers} pax · {v.capacity_luggage} bags</p>
                 {v.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{v.description}</p>}
               </div>
-              <span className="text-sm text-silver">${Number(v.per_km_rate).toFixed(2)} / mile</span>
+              <div className="text-sm text-silver text-right">
+                <div>${Number(v.per_km_rate).toFixed(2)} / mile</div>
+                <div>${Number(v.hourly_rate || 90).toFixed(0)} / hour</div>
+              </div>
               <Badge variant={v.active ? "default" : "outline"}>{v.active ? "Active" : "Hidden"}</Badge>
               <div className="flex items-center gap-2">
                 <Button size="icon" variant="ghost" onClick={() => openEdit(v)} aria-label="Edit"><Pencil className="size-4" /></Button>
