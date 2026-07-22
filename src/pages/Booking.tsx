@@ -30,7 +30,8 @@ export default function Booking() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>(1);
 
-  const initType = (searchParams.get("type") as TransferType | null) ?? "one_way";
+  const rawType = searchParams.get("type") as TransferType | null;
+  const initType: TransferType = rawType === "round_trip" ? "round_trip" : "one_way";
 
   const [date, setDate] = useState(searchParams.get("date") ?? "");
   const [time, setTime] = useState(searchParams.get("time") ?? "");
