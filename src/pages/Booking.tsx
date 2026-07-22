@@ -269,14 +269,12 @@ export default function Booking() {
                   const base = Number(selectedVehicle.base_rate) || 0;
                   const perMi = Number(selectedVehicle.per_km_rate) || 0;
                   const hourly = Number(selectedVehicle.hourly_rate) || 90;
-                  const isHourly = transferType === "hourly";
                   const isRound = transferType === "round_trip";
                   const mult = isRound ? 1.9 : 1;
-                  const hours = isHourly ? Math.max(2, extraWait || 2) : 0;
-                  const distanceCost = isHourly ? 0 : (base + perMi * estimatedMiles) * mult;
-                  const hourlyCost = isHourly ? base + hourly * hours : hourly * extraWait;
-                  const total = distanceCost + hourlyCost;
-                  const typeLabel = isHourly ? "Hourly" : isRound ? "Round trip" : "One way";
+                  const distanceCost = (base + perMi * estimatedMiles) * mult;
+                  const waitCost = hourly * extraWait;
+                  const total = distanceCost + waitCost;
+                  const typeLabel = isRound ? "Return" : "One way";
                   return (
                     <div className="rounded-lg border border-primary/30 bg-card p-5">
                       <p className="text-xs tracking-wider text-primary uppercase">Summary</p>
@@ -286,17 +284,8 @@ export default function Booking() {
                           <p className="text-sm text-muted-foreground">{pickup} → {dropoff}</p>
                           <p className="text-sm text-muted-foreground">{date} at {time} · {passengers} pax · {luggage} bags · {typeLabel}</p>
                           <div className="mt-2 text-sm text-muted-foreground space-y-0.5">
-                            {isHourly ? (
-                              <>
-                                <p>Base: ${base.toFixed(2)}</p>
-                                <p>{hours} h × ${hourly.toFixed(0)}/h = ${(hourly * hours).toFixed(2)}</p>
-                              </>
-                            ) : (
-                              <>
-                                <p>{estimatedMiles} mi × ${perMi.toFixed(2)}/mi {isRound ? "× 1.9 (round trip)" : ""} = ${distanceCost.toFixed(2)}</p>
-                                {extraWait > 0 && <p>Extra wait: {extraWait} h × ${hourly.toFixed(0)}/h = ${(hourly * extraWait).toFixed(2)}</p>}
-                              </>
-                            )}
+                            <p>{estimatedMiles} mi × ${perMi.toFixed(2)}/mi {isRound ? "× 1.9 (return)" : ""} = ${distanceCost.toFixed(2)}</p>
+                            {extraWait > 0 && <p>Extra wait: {extraWait} h × ${hourly.toFixed(0)}/h = ${waitCost.toFixed(2)}</p>}
                           </div>
                         </div>
                         <div className="text-right max-w-[16rem]">
