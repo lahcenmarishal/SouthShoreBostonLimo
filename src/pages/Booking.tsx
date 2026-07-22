@@ -268,32 +268,49 @@ export default function Booking() {
                   </div>
                 </div>
 
-                {selectedVehicle && (
-                  <div className="rounded-lg border border-primary/30 bg-card p-5">
-                    <p className="text-xs tracking-wider text-primary uppercase">Summary</p>
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
-                      <div>
-                        <p className="text-silver-bright font-display text-lg">{selectedVehicle.name}</p>
-                        <p className="text-sm text-muted-foreground">{pickup} → {dropoff}</p>
-                        <p className="text-sm text-muted-foreground">{date} at {time} · {passengers} pax · {luggage} bags</p>
-                        <p className="text-sm text-muted-foreground">
-                          {transferType === "hourly"
-                            ? `${Math.max(1, extraWait || 1)} h at $${Number(selectedVehicle.hourly_rate).toFixed(0)}/h`
-                            : `${estimatedMiles} mi at $${Number(selectedVehicle.per_km_rate).toFixed(2)}/mi`}
-                        </p>
-                      </div>
-                      <div className="text-right max-w-[16rem]">
-                        <p className="font-display text-2xl text-silver-bright">
-                          ${(transferType === "hourly"
-                            ? Number(selectedVehicle.hourly_rate) * Math.max(1, extraWait || 1)
-                            : Number(selectedVehicle.per_km_rate) * estimatedMiles
-                          ).toFixed(0)}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">Final price confirmed by our team by email or phone within minutes.</p>
+                {selectedVehicle && (() => {
+                  const base = Number(selectedVehicle.base_rate) || 0;
+                  const perMi = Number(selectedVehicle.per_km_rate) || 0;
+                  const hourly = Number(selectedVehicle.hourly_rate) || 90;
+                  const isHourly = transferType === "hourly";
+                  const isRound = transferType === "round_trip";
+                  const mult = isRound ? 1.9 : 1;
+                  const hours = isHourly ? Math.max(2, extraWait || 2) : 0;
+                  const distanceCost = isHourly ? 0 : (base + perMi * estimatedMiles) * mult;
+                  const hourlyCost = isHourly ? base + hourly * hours : hourly * extraWait;
+                  const total = distanceCost + hourlyCost;
+                  const typeLabel = isHourly ? "Hourly" : isRound ? "Round trip" : "One way";
+                  return (
+                    <div className="rounded-lg border border-primary/30 bg-card p-5">
+                      <p className="text-xs tracking-wider text-primary uppercase">Summary</p>
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                          <p className="text-silver-bright font-display text-lg">{selectedVehicle.name}</p>
+                          <p className="text-sm text-muted-foreground">{pickup} → {dropoff}</p>
+                          <p className="text-sm text-muted-foreground">{date} at {time} · {passengers} pax · {luggage} bags · {typeLabel}</p>
+                          <div className="mt-2 text-sm text-muted-foreground space-y-0.5">
+                            {isHourly ? (
+                              <>
+                                <p>Base: ${base.toFixed(2)}</p>
+                                <p>{hours} h × ${hourly.toFixed(0)}/h = ${(hourly * hours).toFixed(2)}</p>
+                              </>
+                            ) : (
+                              <>
+                                <p>{estimatedMiles} mi × ${perMi.toFixed(2)}/mi {isRound ? "× 1.9 (round trip)" : ""} = ${distanceCost.toFixed(2)}</p>
+                                {extraWait > 0 && <p>Extra wait: {extraWait} h × ${hourly.toFixed(0)}/h = ${(hourly * extraWait).toFixed(2)}</p>}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right max-w-[16rem]">
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground">Estimated total</p>
+                          <p className="font-display text-3xl text-silver-bright">${total.toFixed(0)}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Final price confirmed by our team by email or phone within minutes.</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 <div className="flex justify-between pt-4">
                   <Button variant="ghost" onClick={() => setStep(2)}><ArrowLeft className="mr-2 size-4" /> Back</Button>
