@@ -20,8 +20,9 @@ export function Footer() {
           <Link to="/" className="font-display text-xl text-silver-bright leading-tight">
             SOUTH SHORE <span className="text-primary italic">Limo</span> BOSTON
           </Link>
+          <p className="mt-2 text-xs uppercase tracking-wider text-primary">by Oma Trans INC</p>
           <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-            South Shore Limo Boston — premium chauffeur and limousine service for executives, weddings,
+            South Shore Limo Boston — a service by Oma Trans INC. Premium chauffeur and limousine service for executives, weddings,
             Logan airport transfers, and special occasions across Boston and the South Shore.
           </p>
         </div>
