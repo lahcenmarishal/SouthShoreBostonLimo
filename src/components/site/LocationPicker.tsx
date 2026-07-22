@@ -182,37 +182,33 @@ export function LocationPicker({ label, value, onChange, placeholder, className 
 
       {open && (
         <div className="rounded-lg border border-border bg-card overflow-hidden">
-          {/* Search results dropdown */}
-          <div className="p-3 border-b border-border bg-background/40">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search address, hotel, airport…"
-                className="pl-9"
-              />
+          {/* Autocomplete results (search input is the main field above) */}
+          {(searching || results.length > 0) && (
+            <div className="p-3 border-b border-border bg-background/40">
               {searching && (
-                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground animate-spin" />
+                <div className="flex items-center gap-2 text-xs text-muted-foreground px-1 pb-2">
+                  <Loader2 className="size-3 animate-spin" /> Searching…
+                </div>
+              )}
+              {results.length > 0 && (
+                <ul className="max-h-48 overflow-auto rounded-md border border-border divide-y divide-border bg-card">
+                  {results.map((r) => (
+                    <li key={r.place_id}>
+                      <button
+                        type="button"
+                        onClick={() => pickResult(r)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex gap-2 items-start"
+                      >
+                        <MapPin className="size-4 text-primary shrink-0 mt-0.5" />
+                        <span className="line-clamp-2">{r.display_name}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
-            {results.length > 0 && (
-              <ul className="mt-2 max-h-48 overflow-auto rounded-md border border-border divide-y divide-border bg-card">
-                {results.map((r) => (
-                  <li key={r.place_id}>
-                    <button
-                      type="button"
-                      onClick={() => pickResult(r)}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex gap-2 items-start"
-                    >
-                      <MapPin className="size-4 text-primary shrink-0 mt-0.5" />
-                      <span className="line-clamp-2">{r.display_name}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          )}
+
 
           <div className="relative h-72 w-full">
             <MapContainer
