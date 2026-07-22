@@ -224,8 +224,8 @@ export default function Booking() {
                               <h3 className="font-display text-xl text-silver-bright mt-1">{v.name}</h3>
                             </div>
                             <div className="text-right">
-                              <p className="font-display text-lg text-silver-bright">${Number(v.per_km_rate).toFixed(2)}</p>
-                              <p className="text-xs text-muted-foreground">per mile</p>
+                              <p className="font-display text-lg text-silver-bright">${Number(v.per_km_rate).toFixed(2)}<span className="text-xs text-muted-foreground font-sans"> /mi</span></p>
+                              <p className="font-display text-lg text-silver-bright">${Number(v.hourly_rate || 90).toFixed(0)}<span className="text-xs text-muted-foreground font-sans"> /hr</span></p>
                             </div>
                           </div>
                           <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{v.description}</p>
