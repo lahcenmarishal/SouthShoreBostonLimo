@@ -73,8 +73,7 @@ export function BookingWidget() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="one_way">One way</SelectItem>
-                  <SelectItem value="round_trip">Round trip</SelectItem>
-                  <SelectItem value="hourly">Hourly</SelectItem>
+                  <SelectItem value="round_trip">Return</SelectItem>
                 </SelectContent>
               </Select>
             </div>
