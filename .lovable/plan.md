@@ -1,48 +1,46 @@
+# Tarifs par région gérés depuis l'admin
+
 ## Objectif
-Calculer automatiquement la distance (km) entre l'adresse de prise en charge et de dépôt via OSRM (gratuit, sans clé API), puis pré-remplir le champ `estimated_km` dans le formulaire de réservation.
+Permettre au client de fixer lui-même le prix exact d'un trajet (véhicule + départ → destination) depuis l'espace admin, sans toucher au code. Si aucun prix fixe n'existe, le calcul actuel (prix par mile + heures d'attente) reste utilisé.
 
-## Comment fonctionne OSRM
-OSRM propose un serveur de démo public (`router.project-osrm.org`) qui prend des coordonnées GPS et renvoie la distance/durée routière. Il ne géocode pas les adresses → il faut passer par **Nominatim** (OpenStreetMap, également gratuit) pour convertir "adresse texte" → coordonnées.
+## Ce que le client verra
 
-Flux :
-```text
-Adresse pickup ──▶ Nominatim ──▶ (lat,lon)
-                                          \
-                                           ├─▶ OSRM /route ──▶ distance en mètres ──▶ km
-                                          /
-Adresse dropoff ─▶ Nominatim ──▶ (lat,lon)
-```
+### Admin — nouvel onglet « Régions »
+Liste des régions/localisations (Airport, Downtown, Region A…) avec :
+- ajout, modification, activation/désactivation, suppression
+- pour chaque région, une liste de mots-clés (ex. « Logan, BOS, airport ») qui sert à reconnaître automatiquement l'adresse saisie par le client
 
-## Implémentation
+### Admin — nouvel onglet « Tarifs »
+Tableau : Véhicule | Départ | Destination | Prix aller | Prix retour (optionnel) | Statut | Actions
+- ajout, modification, activation/désactivation, suppression
+- « Toutes » possible pour le départ ou la destination (tarif par région simple, ex. Sedan → Region A = 70 $)
+- règle bidirectionnelle en option (Airport → Downtown vaut aussi Downtown → Airport)
+- filtre par véhicule pour retrouver vite un tarif
 
-### 1. Edge function `compute-distance`
-Nouvelle fonction Supabase (raison : éviter les problèmes CORS de Nominatim/OSRM côté navigateur, et pouvoir ajouter un User-Agent conforme aux règles d'usage de Nominatim).
+### Formulaire de réservation
+- Le client saisit départ et destination comme aujourd'hui ; deux menus « Région de départ / d'arrivée » se remplissent automatiquement à partir de l'adresse et restent modifiables.
+- Après le choix du véhicule, le récapitulatif affiche le prix fixe si une règle correspond (mention « Tarif fixe »), sinon le calcul actuel par mile. Les heures d'attente supplémentaires sont toujours ajoutées au total.
+- Le prix final s'affiche clairement avant la confirmation.
 
-Entrée : `{ pickup: string, dropoff: string }`  
-Sortie : `{ km: number, durationMin: number }` ou `{ error }`
+## Détails techniques
 
-Étapes internes :
-1. Appelle `https://nominatim.openstreetmap.org/search?format=json&q=<adresse>&limit=1` pour chaque adresse (avec header `User-Agent: SouthShoreLimoBoston/1.0`).
-2. Appelle `https://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false`.
-3. Retourne `distance / 1000` arrondi à 1 décimale.
-4. CORS headers + validation Zod des entrées.
+### Base de données
+`regions` : name, slug, keywords (text[]), active, sort_order
+- lecture publique des régions actives, écriture réservée aux admins
 
-### 2. Intégration dans `src/pages/Booking.tsx`
-- Ajouter un bouton "Calculer la distance" à côté du champ `estimated_km`, actif seulement si `pickup` et `dropoff` sont remplis.
-- Au clic : appelle `supabase.functions.invoke('compute-distance', ...)`, met à jour `estimated_km`, affiche un toast succès/erreur.
-- Calcul automatique optionnel : déclencher aussi via `onBlur` du champ dropoff (debounce simple).
-- Garder la saisie manuelle possible (l'utilisateur peut toujours corriger la valeur).
+`zone_rates` : vehicle_id (FK vehicles), pickup_region_id (nullable = toutes), dropoff_region_id (nullable = toutes), price, round_trip_price (nullable), bidirectional (bool), active, created_at/updated_at + trigger
+- lecture publique des règles actives, écriture réservée aux admins
+- index unique sur (vehicle_id, pickup_region_id, dropoff_region_id)
+- GRANT anon/authenticated en lecture, service_role complet
 
-### 3. Aucun changement de base de données
-Le schéma `bookings.estimated_km` existe déjà et est utilisé par l'admin pour calculer le prix (`per_km_rate * estimated_km`).
+`bookings` : ajout de `pickup_region_id`, `dropoff_region_id`, `price_source` ('zone' | 'formula') pour tracer le tarif appliqué.
 
-## Limitations à connaître (à mentionner dans l'UI via un petit texte d'aide)
-- Serveur de démo OSRM : pas de SLA, usage raisonnable uniquement. Pour un site en production à fort trafic, il faudra soit self-host OSRM, soit passer à Mapbox/GraphHopper.
-- Nominatim : limite ~1 req/sec par IP ; suffisant pour un formulaire de réservation.
-- Précision d'adresse dépend d'OpenStreetMap (peut être approximatif pour certaines adresses résidentielles US).
+### Code
+- `src/lib/regions.ts` : CRUD régions + détection de région à partir d'un texte d'adresse (match sur keywords puis sur le nom).
+- `src/lib/pricing.ts` : `resolvePrice({ vehicle, pickupRegionId, dropoffRegionId, transferType, miles, extraWaitHours, rates })`. Priorité : règle exacte départ+destination → règle avec une seule région → règle « toutes/toutes » → formule actuelle. Retourne le total, le détail et la source.
+- `src/pages/Booking.tsx` : menus de région, récapitulatif basé sur `resolvePrice`, envoi des régions au serveur.
+- `src/lib/bookings.ts` : `createBooking` recalcule le prix avec la même fonction (source unique de vérité) et enregistre les régions.
+- `src/pages/Admin.tsx` : onglets `RegionsManager` et `RatesManager`.
+- Email de notification : mention du tarif fixe et des régions.
 
-## Fichiers touchés
-- `supabase/functions/compute-distance/index.ts` (nouveau)
-- `src/pages/Booking.tsx` (bouton + appel + toast)
-
-Voulez-vous que j'ajoute aussi le calcul automatique au `onBlur` du dropoff, ou seulement le bouton manuel ?
+Aucun prix codé en dur ; les valeurs actuelles par mile/heure restent le repli.
