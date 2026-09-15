@@ -71,6 +71,8 @@ export default function Admin() {
             <TabsList>
               <TabsTrigger value="bookings">Reservations</TabsTrigger>
               <TabsTrigger value="fleet">Fleet</TabsTrigger>
+              <TabsTrigger value="regions">Regions</TabsTrigger>
+              <TabsTrigger value="rates">Rates</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
@@ -95,15 +97,10 @@ export default function Admin() {
                       <p className="text-xs text-muted-foreground mt-1">Ref: {b.id.slice(0, 8)} · Created {format(new Date(b.created_at), "PP p")}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      {(() => {
-                        const veh = b.vehicle_id ? vehicleMap.get(b.vehicle_id) : null;
-                        const price = veh
-                          ? (b.transfer_type === "hourly"
-                              ? Number(veh.hourly_rate) * Math.max(1, Number(b.extra_wait_hours) || 1)
-                              : Number(veh.per_km_rate) * Number(b.estimated_km))
-                          : 0;
-                        return <span className="font-display text-2xl text-silver-bright">${price.toFixed(0)}</span>;
-                      })()}
+                      <span className="font-display text-2xl text-silver-bright">
+                        ${Number(b.estimated_price).toFixed(0)}
+                      </span>
+                      {b.price_source === "zone" && <Badge variant="secondary">Fixed rate</Badge>}
                       <Badge variant="outline">{b.status}</Badge>
                       <Select value={b.status} onValueChange={(v) => mutation.mutate({ id: b.id, status: v as BookingStatus })}>
                         <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
@@ -169,6 +166,14 @@ export default function Admin() {
 
             <TabsContent value="fleet" className="mt-6">
               <FleetManager />
+            </TabsContent>
+
+            <TabsContent value="regions" className="mt-6">
+              <RegionsManager />
+            </TabsContent>
+
+            <TabsContent value="rates" className="mt-6">
+              <RatesManager />
             </TabsContent>
 
             <TabsContent value="settings" className="mt-6">
