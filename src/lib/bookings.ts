@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { listZoneRates, resolvePrice } from "@/lib/pricing";
 
 export type TransferType = "one_way" | "round_trip" | "hourly";
 export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
@@ -13,40 +14,35 @@ export type BookingInput = {
   extra_wait_hours: number;
   estimated_km: number;
   vehicle_id: string;
+  pickup_region_id?: string | null;
+  dropoff_region_id?: string | null;
   customer_name: string;
   customer_email: string;
   customer_phone: string;
   notes?: string;
 };
 
-function computePrice(
-  v: { base_rate: number; per_km_rate: number; hourly_rate: number },
-  data: BookingInput,
-) {
-  const base = Number(v.base_rate);
-  const perKm = Number(v.per_km_rate);
-  const hourly = Number(v.hourly_rate);
-  let price = 0;
-  if (data.transfer_type === "hourly") {
-    const hours = Math.max(2, data.extra_wait_hours || 2);
-    price = base + hourly * hours;
-  } else {
-    const mult = data.transfer_type === "round_trip" ? 1.9 : 1;
-    price = (base + perKm * data.estimated_km) * mult + hourly * data.extra_wait_hours;
-  }
-  return Math.round(price * 100) / 100;
-}
-
 export async function createBooking(data: BookingInput) {
   const { data: vehicle, error: vErr } = await supabase
     .from("vehicles")
-    .select("id,base_rate,per_km_rate,hourly_rate")
+    .select("id,name,base_rate,per_km_rate,hourly_rate")
     .eq("id", data.vehicle_id)
     .eq("active", true)
     .maybeSingle();
   if (vErr || !vehicle) throw new Error(vErr?.message ?? "Vehicle not found");
 
-  const price = computePrice(vehicle, data);
+  const rates = await listZoneRates().catch(() => []);
+  const quote = resolvePrice({
+    vehicle,
+    pickupRegionId: data.pickup_region_id ?? null,
+    dropoffRegionId: data.dropoff_region_id ?? null,
+    transferType: data.transfer_type,
+    miles: data.estimated_km,
+    extraWaitHours: data.extra_wait_hours,
+    rates,
+  });
+  const price = quote.total;
+
   const { data: userData } = await supabase.auth.getUser();
   const user_id = userData.user?.id ?? null;
 
@@ -58,12 +54,15 @@ export async function createBooking(data: BookingInput) {
       pickup_at: data.pickup_at,
       pickup_location: data.pickup_location,
       dropoff_location: data.dropoff_location,
+      pickup_region_id: data.pickup_region_id ?? null,
+      dropoff_region_id: data.dropoff_region_id ?? null,
       transfer_type: data.transfer_type,
       passengers: data.passengers,
       luggage: data.luggage,
       extra_wait_hours: data.extra_wait_hours,
       estimated_km: data.estimated_km,
       estimated_price: price,
+      price_source: quote.source,
       customer_name: data.customer_name,
       customer_email: data.customer_email,
       customer_phone: data.customer_phone,
@@ -72,14 +71,14 @@ export async function createBooking(data: BookingInput) {
   if (error) throw new Error(error.message);
 
   // Fire-and-forget: notify admin via Resend. Never block booking confirmation on email failures.
-  const { data: v } = await supabase
-    .from("vehicles")
-    .select("name")
-    .eq("id", data.vehicle_id)
-    .maybeSingle();
   supabase.functions
     .invoke("send-booking-notification", {
-      body: { ...data, estimated_price: price, vehicle_name: v?.name },
+      body: {
+        ...data,
+        estimated_price: price,
+        price_source: quote.source,
+        vehicle_name: vehicle.name,
+      },
     })
     .catch((e) => console.error("send-booking-notification failed", e));
 
