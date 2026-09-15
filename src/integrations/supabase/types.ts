@@ -21,6 +21,7 @@ export type Database = {
           customer_name: string
           customer_phone: string
           dropoff_location: string
+          dropoff_region_id: string | null
           estimated_km: number
           estimated_price: number
           extra_wait_hours: number
@@ -30,6 +31,8 @@ export type Database = {
           passengers: number
           pickup_at: string
           pickup_location: string
+          pickup_region_id: string | null
+          price_source: string
           status: Database["public"]["Enums"]["booking_status"]
           transfer_type: Database["public"]["Enums"]["transfer_type"]
           updated_at: string
@@ -42,6 +45,7 @@ export type Database = {
           customer_name: string
           customer_phone: string
           dropoff_location: string
+          dropoff_region_id?: string | null
           estimated_km?: number
           estimated_price?: number
           extra_wait_hours?: number
@@ -51,6 +55,8 @@ export type Database = {
           passengers?: number
           pickup_at: string
           pickup_location: string
+          pickup_region_id?: string | null
+          price_source?: string
           status?: Database["public"]["Enums"]["booking_status"]
           transfer_type?: Database["public"]["Enums"]["transfer_type"]
           updated_at?: string
@@ -63,6 +69,7 @@ export type Database = {
           customer_name?: string
           customer_phone?: string
           dropoff_location?: string
+          dropoff_region_id?: string | null
           estimated_km?: number
           estimated_price?: number
           extra_wait_hours?: number
@@ -72,6 +79,8 @@ export type Database = {
           passengers?: number
           pickup_at?: string
           pickup_location?: string
+          pickup_region_id?: string | null
+          price_source?: string
           status?: Database["public"]["Enums"]["booking_status"]
           transfer_type?: Database["public"]["Enums"]["transfer_type"]
           updated_at?: string
@@ -79,6 +88,20 @@ export type Database = {
           vehicle_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_dropoff_region_id_fkey"
+            columns: ["dropoff_region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_pickup_region_id_fkey"
+            columns: ["pickup_region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_vehicle_id_fkey"
             columns: ["vehicle_id"]
@@ -108,6 +131,39 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      regions: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          keywords: string[]
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          keywords?: string[]
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          keywords?: string[]
+          name?: string
+          slug?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -222,6 +278,67 @@ export type Database = {
           sort_order?: number
         }
         Relationships: []
+      }
+      zone_rates: {
+        Row: {
+          active: boolean
+          bidirectional: boolean
+          created_at: string
+          dropoff_region_id: string | null
+          id: string
+          pickup_region_id: string | null
+          price: number
+          round_trip_price: number | null
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          active?: boolean
+          bidirectional?: boolean
+          created_at?: string
+          dropoff_region_id?: string | null
+          id?: string
+          pickup_region_id?: string | null
+          price?: number
+          round_trip_price?: number | null
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          active?: boolean
+          bidirectional?: boolean
+          created_at?: string
+          dropoff_region_id?: string | null
+          id?: string
+          pickup_region_id?: string | null
+          price?: number
+          round_trip_price?: number | null
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zone_rates_dropoff_region_id_fkey"
+            columns: ["dropoff_region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zone_rates_pickup_region_id_fkey"
+            columns: ["pickup_region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zone_rates_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

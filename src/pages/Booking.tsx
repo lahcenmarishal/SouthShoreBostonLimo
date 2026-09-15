@@ -18,6 +18,8 @@ import { createBooking, type TransferType } from "@/lib/bookings";
 import { cn } from "@/lib/utils";
 import { useSeo } from "@/lib/useSeo";
 import { LocationPicker } from "@/components/site/LocationPicker";
+import { listRegions, detectRegion } from "@/lib/regions";
+import { listZoneRates, resolvePrice } from "@/lib/pricing";
 
 type Step = 1 | 2 | 3;
 
@@ -44,6 +46,10 @@ export default function Booking() {
   const [estimatedMiles, setEstimatedMiles] = useState(Number(searchParams.get("miles") ?? 0));
 
   const [vehicleId, setVehicleId] = useState<string>(searchParams.get("vehicle") ?? "");
+  const [pickupRegionId, setPickupRegionId] = useState<string>("");
+  const [dropoffRegionId, setDropoffRegionId] = useState<string>("");
+  const [pickupRegionTouched, setPickupRegionTouched] = useState(false);
+  const [dropoffRegionTouched, setDropoffRegionTouched] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -51,6 +57,18 @@ export default function Booking() {
   const [notes, setNotes] = useState("");
 
   const { data: vehicles = [] } = useQuery({ queryKey: ["vehicles"], queryFn: listVehicles });
+  const { data: regions = [] } = useQuery({ queryKey: ["regions"], queryFn: listRegions });
+  const { data: zoneRates = [] } = useQuery({ queryKey: ["zone-rates"], queryFn: listZoneRates });
+
+  // Auto-detect the region from the typed address until the user overrides it.
+  useEffect(() => {
+    if (pickupRegionTouched || regions.length === 0) return;
+    setPickupRegionId(detectRegion(pickup, regions)?.id ?? "");
+  }, [pickup, regions, pickupRegionTouched]);
+  useEffect(() => {
+    if (dropoffRegionTouched || regions.length === 0) return;
+    setDropoffRegionId(detectRegion(dropoff, regions)?.id ?? "");
+  }, [dropoff, regions, dropoffRegionTouched]);
   const mutation = useMutation({
     mutationFn: createBooking,
     onSuccess: () => {
@@ -104,6 +122,8 @@ export default function Booking() {
       extra_wait_hours: extraWait,
       estimated_km: estimatedMiles,
       vehicle_id: vehicleId,
+      pickup_region_id: pickupRegionId || null,
+      dropoff_region_id: dropoffRegionId || null,
       customer_name: name,
       customer_email: email,
       customer_phone: phone,
@@ -161,6 +181,36 @@ export default function Booking() {
                       placeholder="Destination"
                     />
                   </div>
+                  {regions.length > 0 && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Pickup region</Label>
+                        <Select
+                          value={pickupRegionId || "none"}
+                          onValueChange={(v) => { setPickupRegionTouched(true); setPickupRegionId(v === "none" ? "" : v); }}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Select region" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Not specified</SelectItem>
+                            {regions.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Drop-off region</Label>
+                        <Select
+                          value={dropoffRegionId || "none"}
+                          onValueChange={(v) => { setDropoffRegionTouched(true); setDropoffRegionId(v === "none" ? "" : v); }}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Select region" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Not specified</SelectItem>
+                            {regions.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  )}
                   <div className="space-y-2">
                     <Label>Transfer type</Label>
                     <Select value={transferType} onValueChange={(v) => setTransferType(v as TransferType)}>
@@ -267,15 +317,16 @@ export default function Booking() {
                 </div>
 
                 {selectedVehicle && (() => {
-                  const base = Number(selectedVehicle.base_rate) || 0;
-                  const perMi = Number(selectedVehicle.per_km_rate) || 0;
-                  const hourly = Number(selectedVehicle.hourly_rate) || 90;
-                  const isRound = transferType === "round_trip";
-                  const mult = isRound ? 1.9 : 1;
-                  const distanceCost = (base + perMi * estimatedMiles) * mult;
-                  const waitCost = hourly * extraWait;
-                  const total = distanceCost + waitCost;
-                  const typeLabel = isRound ? "Return" : "One way";
+                  const quote = resolvePrice({
+                    vehicle: selectedVehicle,
+                    pickupRegionId: pickupRegionId || null,
+                    dropoffRegionId: dropoffRegionId || null,
+                    transferType,
+                    miles: estimatedMiles,
+                    extraWaitHours: extraWait,
+                    rates: zoneRates,
+                  });
+                  const typeLabel = transferType === "round_trip" ? "Return" : "One way";
                   return (
                     <div className="rounded-lg border border-primary/30 bg-card p-5">
                       <p className="text-xs tracking-wider text-primary uppercase">Summary</p>
@@ -285,14 +336,19 @@ export default function Booking() {
                           <p className="text-sm text-muted-foreground">{pickup} → {dropoff}</p>
                           <p className="text-sm text-muted-foreground">{date} at {time} · {passengers} pax · {luggage} bags · {typeLabel}</p>
                           <div className="mt-2 text-sm text-muted-foreground space-y-0.5">
-                            <p>{estimatedMiles} mi × ${perMi.toFixed(2)}/mi {isRound ? "× 1.9 (return)" : ""} = ${distanceCost.toFixed(2)}</p>
-                            {extraWait > 0 && <p>Extra wait: {extraWait} h × ${hourly.toFixed(0)}/h = ${waitCost.toFixed(2)}</p>}
+                            {quote.lines.map((l) => <p key={l}>{l}</p>)}
                           </div>
                         </div>
                         <div className="text-right max-w-[16rem]">
-                          <p className="text-xs uppercase tracking-wider text-muted-foreground">Estimated total</p>
-                          <p className="font-display text-3xl text-silver-bright">${total.toFixed(0)}</p>
-                          <p className="text-xs text-muted-foreground mt-1">Final price confirmed by our team by email or phone within minutes.</p>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                            {quote.source === "zone" ? "Fixed rate total" : "Estimated total"}
+                          </p>
+                          <p className="font-display text-3xl text-silver-bright">${quote.total.toFixed(0)}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {quote.source === "zone"
+                              ? "Fixed price for this route, confirmed by our team."
+                              : "Final price confirmed by our team by email or phone within minutes."}
+                          </p>
                         </div>
                       </div>
                     </div>
