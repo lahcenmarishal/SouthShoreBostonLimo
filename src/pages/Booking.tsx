@@ -122,6 +122,8 @@ export default function Booking() {
       extra_wait_hours: extraWait,
       estimated_km: estimatedMiles,
       vehicle_id: vehicleId,
+      pickup_region_id: pickupRegionId || null,
+      dropoff_region_id: dropoffRegionId || null,
       customer_name: name,
       customer_email: email,
       customer_phone: phone,
