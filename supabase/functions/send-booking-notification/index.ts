@@ -43,7 +43,8 @@ Deno.serve(async (req) => {
       ['Extra wait (hours)', String(b.extra_wait_hours ?? 0)],
       ['Distance (miles)', `${miles} mi`],
       ['Vehicle', b.vehicle_name ?? b.vehicle_id ?? '—'],
-      ['Estimated total price', `$${price.toFixed(2)}`],
+      ['Total price', `$${price.toFixed(2)}`],
+      ['Pricing method', b.price_source === 'zone' ? 'Fixed route/region rate' : 'Per-mile calculation'],
       ['Notes', b.notes && String(b.notes).trim() ? b.notes : '—'],
     ];
 
