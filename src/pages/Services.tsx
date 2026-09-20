@@ -1,16 +1,18 @@
-import { Plane, Briefcase, Heart, Calendar, Clock, Building2 } from "lucide-react";
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Plane, Briefcase, Heart, Calendar, Clock, Building2, ArrowRight } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Card } from "@/components/ui/card";
 import { useSeo } from "@/lib/useSeo";
 
 const services = [
-  { Icon: Plane, t: "Airport transfers", d: "Flight tracking, meet-and-greet at arrivals, luggage handled. Logan, JFK, LaGuardia, Newark — we know the routes." },
-  { Icon: Briefcase, t: "Corporate", d: "Recurring rides for executives, client pickups, roadshows. Monthly invoicing available for businesses." },
-  { Icon: Heart, t: "Weddings", d: "Ribboned arrival, decorated interior, photo stops included. Stretch limousine or executive sedan for the couple." },
-  { Icon: Calendar, t: "Special events", d: "Galas, premieres, milestone birthdays, anniversaries. Door-to-door luxury for the moments that matter." },
-  { Icon: Clock, t: "Hourly service", d: "Reserve a car and chauffeur by the hour. Ideal for shopping, multiple stops, or all-day events." },
-  { Icon: Building2, t: "City tours", d: "Private guided tours of the city in complete comfort. Custom routes available on request." },
+  { Icon: Plane, t: "Airport transfers", slug: "airport-transfers", d: "Flight tracking, meet-and-greet at arrivals, luggage handled. Logan, JFK, LaGuardia, Newark — we know the routes." },
+  { Icon: Briefcase, t: "Corporate", slug: "corporate", d: "Recurring rides for executives, client pickups, roadshows. Monthly invoicing available for businesses." },
+  { Icon: Heart, t: "Weddings", slug: "weddings", d: "Ribboned arrival, decorated interior, photo stops included. Stretch limousine or executive sedan for the couple." },
+  { Icon: Calendar, t: "Special events", slug: "special-events", d: "Galas, premieres, milestone birthdays, anniversaries. Door-to-door luxury for the moments that matter." },
+  { Icon: Clock, t: "Hourly service", slug: "hourly-service", d: "Reserve a car and chauffeur by the hour. Ideal for shopping, multiple stops, or all-day events." },
+  { Icon: Building2, t: "City tours", slug: "city-tours", d: "Private guided tours of the city in complete comfort. Custom routes available on request." },
 ];
 
 export default function Services() {
@@ -18,6 +20,14 @@ export default function Services() {
     title: "Services — South Shore Limo Boston",
     description: "South Shore Limo Boston services: Logan airport transfers, corporate transport, weddings, special events, hourly chauffeur and city tours.",
   });
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) return;
+    const el = document.getElementById(hash.slice(1));
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [hash]);
+
   return (
     <>
       <Header />
@@ -32,11 +42,22 @@ export default function Services() {
           </div>
           <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((s) => (
-              <Card key={s.t} className="p-8 bg-card/60 hover:border-primary/50 transition-all">
-                <s.Icon className="size-10 text-primary mb-5" />
-                <h3 className="font-display text-2xl text-silver-bright">{s.t}</h3>
-                <p className="mt-3 text-muted-foreground leading-relaxed">{s.d}</p>
-              </Card>
+              <Link
+                key={s.t}
+                id={s.slug}
+                to={`/booking?service=${s.slug}`}
+                className="block group scroll-mt-32"
+                aria-label={`Book ${s.t}`}
+              >
+                <Card className="h-full p-8 bg-card/60 hover:bg-card hover:border-primary/50 hover:shadow-[var(--shadow-glow)] transition-all cursor-pointer">
+                  <s.Icon className="size-10 text-primary mb-5" />
+                  <h3 className="font-display text-2xl text-silver-bright group-hover:text-primary transition-colors">{s.t}</h3>
+                  <p className="mt-3 text-muted-foreground leading-relaxed">{s.d}</p>
+                  <span className="mt-5 inline-flex items-center text-sm text-primary">
+                    Book this service <ArrowRight className="ml-1 size-4" />
+                  </span>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
