@@ -11,6 +11,7 @@ const navLinks = [
   { to: "/services", label: "Services" },
   { to: "/fleet", label: "Fleet" },
   { to: "/contact", label: "Contact" },
+  { to: "/track", label: "Track booking" },
 ] as const;
 
 export function Header() {

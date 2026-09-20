@@ -72,8 +72,8 @@ export default function Booking() {
   const mutation = useMutation({
     mutationFn: createBooking,
     onSuccess: () => {
-      toast.success("Quote request received! We'll confirm your final price by email or phone shortly.");
-      navigate("/");
+      toast.success("Quote request received! Follow its status here at any time.");
+      navigate("/track");
     },
     onError: (e: Error) => toast.error(e.message),
   });
