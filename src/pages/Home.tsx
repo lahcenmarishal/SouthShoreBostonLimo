@@ -13,11 +13,11 @@ import { listVehicles } from "@/lib/vehicles";
 import heroImg from "@/assets/fleet-hero.jpg";
 
 const services = [
-  { icon: Plane, title: "Airport transfers", desc: "Flight-tracked pickups, meet & greet, no rush." },
-  { icon: Briefcase, title: "Corporate", desc: "Discreet executive transport for board meetings and clients." },
-  { icon: Heart, title: "Weddings", desc: "Arrive in style on the most important day." },
-  { icon: Calendar, title: "Special events", desc: "Galas, premieres, anniversaries — turn every arrival into a moment." },
-  { icon: Clock, title: "Hourly service", desc: "Reserve a chauffeur for the hour with full flexibility." },
+  { icon: Plane, title: "Airport transfers", desc: "Flight-tracked pickups, meet & greet, no rush.", slug: "airport-transfers" },
+  { icon: Briefcase, title: "Corporate", desc: "Discreet executive transport for board meetings and clients.", slug: "corporate" },
+  { icon: Heart, title: "Weddings", desc: "Arrive in style on the most important day.", slug: "weddings" },
+  { icon: Calendar, title: "Special events", desc: "Galas, premieres, anniversaries — turn every arrival into a moment.", slug: "special-events" },
+  { icon: Clock, title: "Hourly service", desc: "Reserve a chauffeur for the hour with full flexibility.", slug: "hourly-service" },
 ];
 
 export default function Home() {
@@ -58,11 +58,16 @@ export default function Home() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {services.map((s, i) => (
             <motion.div key={s.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.08 }}>
-              <Card className="h-full p-6 bg-card/60 hover:bg-card transition-all duration-300 hover:border-primary/50 hover:shadow-[var(--shadow-glow)]">
-                <s.icon className="size-8 text-primary mb-4" />
-                <h3 className="font-display text-lg text-silver-bright mb-2">{s.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
-              </Card>
+              <Link to={`/services#${s.slug}`} className="block h-full group" aria-label={`${s.title} — see details`}>
+                <Card className="h-full p-6 bg-card/60 hover:bg-card transition-all duration-300 hover:border-primary/50 hover:shadow-[var(--shadow-glow)] cursor-pointer">
+                  <s.icon className="size-8 text-primary mb-4" />
+                  <h3 className="font-display text-lg text-silver-bright mb-2 group-hover:text-primary transition-colors">{s.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+                  <span className="mt-4 inline-flex items-center text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    Learn more <ArrowRight className="ml-1 size-3" />
+                  </span>
+                </Card>
+              </Link>
             </motion.div>
           ))}
         </div>

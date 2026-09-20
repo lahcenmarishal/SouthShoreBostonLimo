@@ -34,6 +34,7 @@ export function Footer() {
             <li><Link to="/services" className="text-muted-foreground hover:text-silver-bright">Services</Link></li>
             <li><Link to="/fleet" className="text-muted-foreground hover:text-silver-bright">Our fleet</Link></li>
             <li><Link to="/contact" className="text-muted-foreground hover:text-silver-bright">Contact</Link></li>
+            <li><Link to="/track" className="text-muted-foreground hover:text-silver-bright">Track my booking</Link></li>
           </ul>
         </div>
 

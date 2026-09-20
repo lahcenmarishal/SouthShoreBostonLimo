@@ -9,6 +9,7 @@ import Fleet from "@/pages/Fleet";
 import Contact from "@/pages/Contact";
 import Auth from "@/pages/Auth";
 import Booking from "@/pages/Booking";
+import TrackBooking from "@/pages/TrackBooking";
 import MyBookings from "@/pages/MyBookings";
 import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/booking" element={<Booking />} />
+          <Route path="/track" element={<TrackBooking />} />
           <Route path="/my-bookings" element={<RequireAuth><MyBookings /></RequireAuth>} />
           <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
           <Route path="*" element={<NotFound />} />
